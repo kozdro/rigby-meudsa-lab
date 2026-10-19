@@ -3,24 +3,20 @@
   "private": false,
   "packageManager": "pnpm@12.11.2",
   "engines": {
-    "node": ">=22.22.0"
+    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
-    "dev": "pnpm -r dev",
-    "build": "pnpm -r build",
-    "start": "turbo start",
-    "lint": "turbo lint",
-    "test": "turbo test",
-    "backend:seed": "turbo seed --filter=@dtc/backend",
-    "backend:dev": "turbo dev --filter=@dtc/backend",
-    "storefront:dev": "turbo dev --filter=@dtc/storefront"
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.0.5",
-      "@types/react-dom": "19.0.5",
-      "tsconfig-paths": "^4.2.0"
-    }
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "start": "pnpm run build && pnpm -r --parallel run start",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm --dir apps/storefront run typecheck",
+    "test": "pnpm --dir apps/backend run test:unit",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "backend:dev": "pnpm --dir apps/backend run dev",
+    "storefront:dev": "pnpm --dir apps/storefront run dev",
+    "harness:check": "node scripts/check-harness.mjs",
+    "harness:smoke": "node scripts/smoke-harness.mjs"
   },
   "devDependencies": {
     "@medusajs/eslint-plugin": "2.21.2",

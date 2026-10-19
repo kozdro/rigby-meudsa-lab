@@ -9,5 +9,12 @@ allowBuilds:
   esbuild: true
   msgpackr-extract: true
   protobufjs: true
+  unrs-resolver: true
 
-# pnpm 10.x
+# Medusa 2.21.2 publishes declarations importing @medusajs/types but lists it
+# only as a dev dependency. Bind it to the consumer's peer context instead of
+# accidentally resolving the storefront's hoisted copy (Vite 8 vs backend Vite 7).
+packageExtensions:
+  "@medusajs/utils@2.21.2":
+    peerDependencies:
+      "@medusajs/types": "2.21.2"

@@ -1,154 +1,81 @@
-# AGENTS.md
+# Rigby development harness
 
-## Overview
+## Stack and ownership
 
-Medusa DTC Starter — a Turborepo workspace monorepo containing a Medusa backend (`@medusajs/medusa` latest, Node 20+, PostgreSQL 15+) and an optional storefront (Next.js, Tanstack, etc...).
+- Codex is the Orchestrator. Claude Code is a fallback following these same rules.
+- Backend: Medusa **2.21.2**, TypeScript, `apps/backend` (`@dtc/backend`).
+- Storefront: Nuxt **4.6.2**, Vue 3, TypeScript, `apps/storefront` (`storefront`). Medusa Admin still uses React; the storefront does not.
+- Use pnpm **12.11.2** (`packageManager` / `pnpm-lock.yaml`). Verified local Node: **24.22.0**. Respect installed package engines; do not upgrade frameworks during feature work.
+- PostgreSQL runs in an existing, separate Docker container. Do not recreate, reset, migrate or seed it as a routine check.
 
-## Directory Structure
+## SPEC -> EXPLORE -> BUILD -> REVIEW -> VALIDATE
 
-```text
-.
-├── apps/
-│   ├── backend/                  # Medusa application (@dtc/backend)
-│   │   ├── medusa-config.ts      # Medusa config: DB URL, CORS, secrets, modules
-│   │   ├── integration-tests/    # setup.js (Jest setupFiles) and http/*.spec.ts suites
-│   │   └── src/
-│   │       ├── admin/            # Admin dashboard extensions (widgets/, i18n/, routes)
-│   │       ├── api/              # API routes: api/store/*, api/admin/* (file-based)
-│   │       ├── jobs/             # Scheduled jobs
-│   │       ├── links/            # Module links between modules
-│   │       ├── migration-scripts/# Data migration scripts (e.g. initial-data-seed.ts)
-│   │       ├── modules/          # Custom modules (service + models + migrations)
-│   │       ├── subscribers/      # Event subscribers
-│   │       └── workflows/        # Workflows and workflow steps
-│   └── storefront/               # OPTIONAL storefront
-├── eslint.config.ts              # Root ESLint: @medusajs/eslint-plugin recommended
-├── turbo.json                    # Task graph: build, dev, start, lint, test, seed
+1. **SPEC:** Orchestrator states observable acceptance criteria, exclusions and the smallest useful change. Keep the plan in the conversation.
+2. **EXPLORE:** For unfamiliar/cross-app work, delegate a bounded question to the built-in `explorer`. It reads relevant files and returns paths, existing contracts, risks and checks. No edits or nested delegation. Skip for an understood trivial change.
+3. **BUILD:** Delegate backend implementation to `medusa-specialist` and frontend implementation to `nuxt-specialist` when useful. Do small configuration/documentation work directly. Agree on method/path, types, auth, errors and empty states before splitting cross-app work. Parallelize only disjoint files with an agreed contract.
+4. **REVIEW:** Ask `reviewer` in a separate context to inspect requirements and the actual final diff, including untracked files. Supply base revision and changed paths. It investigates independently; an implementer's summary is not proof. Send findings to the responsible implementer; request focused re-review after material fixes.
+5. **VALIDATE:** Orchestrator checks the final tree, runs applicable gates, reconciles review and acceptance criteria and reports evidence. A reviewer verdict is not a test result. Changes after a check invalidate that check for the affected scope.
+
+Only Orchestrator delegates. Specialists/reviewer must not spawn agents. Maximum three concurrently running subagent threads; stop finished threads using available runtime controls (some clients have no close/delete tool). Do not delegate every command or create extra roles. Never run concurrent edits to the same file. Shared manifests, lockfile and harness belong to Orchestrator unless explicitly assigned.
+
+Every delegation includes: objective, acceptance criteria, allowed files, shared contract, forbidden actions and required checks. Every implementation return includes: **status** (`DONE`, `BLOCKED`, `NEEDS_DECISION`), **files/symbols**, **behavior/contract**, **skills/references**, **checks** (command, exit code, counts or `NOT_RUN` reason), **risks/questions**. Escalate contract changes, unsupported APIs, ownership conflicts and dependencies before dependent edits. Never silently widen scope or weaken checks.
+
+Keep raw logs in the executing context; return concise findings and evidence references. Report unsupported/failed delegation honestly. Never impersonate a subagent or treat a role prompt as runtime execution.
+
+## Medusa rules and skills
+
+- Read `.agents/skills/building-with-medusa/SKILL.md`, then relevant `reference/` files (API, workflows, modules, links, queries, auth).
+- File-based handlers live in `src/api/**/route.ts`. Keep routes thin. Mutations/business processes use workflows/steps; simple reads may use Query directly. Use module services/links, not raw SQL or direct DB clients.
+- Reuse core workflows. Validate input and ownership/authentication. Generate a **new** migration for model changes; never rewrite existing migrations or apply them to the running database without task authorization.
+- Use `@medusajs/framework/zod`, installed types and recommended `@medusajs/eslint-plugin` rules. Never disable Medusa rules or bypass lint for a green build.
+- Project compatibility overrides skill examples: Medusa 2.21.2 supports PUT/PATCH too. Do not invent framework restrictions from examples.
+- Prices are display amounts; do not divide/multiply by 100.
+
+## Nuxt rules and storefront skills
+
+- Read `building-storefronts/SKILL.md` and its SDK reference for integration. For UI, read `storefront-best-practices/SKILL.md` and relevant references only. Preserve the three installed skills.
+- **Project overrides:** no Next.js routes/Server Actions, React hooks/React Query, `NEXT_PUBLIC_*` or React dependencies in the storefront. Translate examples into Vue SFCs, Composition API and Nuxt 4.
+- Use `app/pages`, `app/components`, `app/plugins`, `app/composables`; Nitro handlers live under `server/`. Reuse `app/plugins/medusa.ts`, not a global authenticated singleton.
+- Wrap SDK reads in `useAsyncData`; use `useFetch` for suitable Nuxt HTTP endpoints. Mutations belong in explicit actions with pending/error handling and refresh/invalidation. Preserve SSR/hydration; no mutation side effects in async-data handlers.
+- Use runtimeConfig. Public overrides: `NUXT_PUBLIC_MEDUSA_BACKEND_URL`, `NUXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`. Never expose backend credentials/admin tokens.
+- Prefer built-in SDK methods; custom Medusa routes use `sdk.client.fetch` with object bodies. Preserve required headers. The skill's blanket fetch ban does not prohibit Nuxt HTTP tooling.
+- Use regional context when displaying prices. Handle loading/errors/empty data. Port 8000 is not required: actual origins must match CORS. Configure Vite through Nuxt only for a demonstrated issue.
+
+## Documentation
+
+For unfamiliar/version-sensitive APIs use Context7: resolve-library-id, then a focused query-docs. Verify against installed Medusa 2.21.2 types/source. Medusa Docs MCP is optional and may require Cloud authentication; use public official docs/Context7 when unavailable. Do not install plugins or add credentials just to finish a task.
+
+## Commands and quality gates
+
+Run from root with pnpm; never introduce another lockfile:
+
+```sh
+pnpm dev                       # both apps
+pnpm backend:dev               # normally localhost:9000; /app admin
+pnpm storefront:dev            # Nuxt normally localhost:3000; actual port may differ
+pnpm lint                      # both apps, no cache
+pnpm typecheck                 # Vue/TypeScript
+pnpm test                      # backend unit tests, no DB
+pnpm build                     # both apps
+pnpm check                     # lint + typecheck + unit tests + build
+pnpm harness:check             # effective role config through local Codex app server
+pnpm harness:smoke             # real bounded multi-agent exercise; .codex/smoke.md
+pnpm --dir apps/backend run test:integration:http
+pnpm --dir apps/backend run test:integration:modules
 ```
 
-**`apps/storefront` is optional and may not exist.** It is skipped when the user chooses not to install it. Before running any storefront command, referencing storefront files, or assuming a full-stack change is possible, check that `apps/storefront/` exists. If it doesn't, the project is backend-only — do not scaffold it or suggest it was deleted by mistake.
+- Backend: Medusa lint/build and relevant behavior tests. Frontend: lint/typecheck/build and changed-behavior smoke. Documentation-only changes need relevant config/link checks.
+- Add meaningful behavior/failure-boundary tests, not tests mirroring configuration. No `--passWithNoTests`, disabled rules or mocked success evidence.
+- Integration suites may create/drop databases: require an identified disposable test DB and explicit task authorization. Never use the running development DB. Report `NOT_RUN` if absent.
+- Report commands, exit codes, counts, failures and limitations. Tool startup, valid config and agent `DONE` do not establish passing gates.
 
-Each app can have its own nested `AGENTS.md`; agents read the nearest one in the directory tree, so put app-specific context there rather than expanding this file.
+## Boundaries and review policy
 
-## Package Manager
-
-**The package manager is chosen at install time and is not fixed.** Detect it before running anything, in this order:
-
-1. The `packageManager` field in the root `package.json` (e.g. `"pnpm@10.11.1"`) — authoritative when present.
-2. The lockfile at the repo root: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `package-lock.json` → npm.
-
-```bash
-node -p "require('./package.json').packageManager ?? 'unset'"
-ls pnpm-lock.yaml yarn.lock package-lock.json bun.lock bun.lockb 2>/dev/null
-```
-
-Use that manager for every command and never introduce a second lockfile. Below, `<pm>` means the detected manager. The `<pm> run <script>` and `<pm> exec <bin>` forms work across npm, pnpm, yarn, and bun; workspace-filter flags do not, so the per-app commands below `cd` into the app instead.
-
-## Commands
-
-Run from the repo root unless noted. Turbo skips missing apps automatically.
-
-### Development
-
-```bash
-<pm> run dev                # all apps
-<pm> run backend:dev        # backend only (http://localhost:9000, admin at /app)
-<pm> run storefront:dev     # storefront only (http://localhost:8000)
-```
-
-### Build
-
-```bash
-<pm> run build              # all apps
-<pm> run start              # build (via turbo dependsOn) then start
-```
-
-### Lint
-
-```bash
-<pm> run lint                          # all apps via turbo
-cd apps/backend && <pm> run lint       # medusa lint
-cd apps/storefront && <pm> run lint    # next lint
-```
-
-### Test (backend only; the storefront has no test suite)
-
-```bash
-<pm> run test                                              # all test tasks via turbo
-cd apps/backend && <pm> run test:unit                      # **/src/**/__tests__/**/*.unit.spec.ts
-cd apps/backend && <pm> run test:integration:modules       # **/src/modules/*/__tests__/**
-cd apps/backend && <pm> run test:integration:http          # **/integration-tests/http/*.spec.ts
-```
-
-Single test — pass a path/pattern through to Jest, keeping `TEST_TYPE`:
-
-```bash
-cd apps/backend && <pm> run test:unit -- src/modules/foo/__tests__/service.unit.spec.ts
-cd apps/backend && <pm> run test:unit -- -t "returns the cart"
-```
-
-### Database
-
-```bash
-cd apps/backend
-<pm> exec medusa db:generate <module-name>   # generate migrations for a custom module
-<pm> exec medusa db:migrate                  # run migrations
-<pm> exec medusa user -e admin@test.com -p supersecret
-<pm> run backend:seed                        # from root; seeds initial data
-```
-
-## Medusa Skills & MCP Server
-
-These are optional but strongly recommended — they give documentation-backed answers instead of guesses about Medusa APIs. **Use them when available; if they are not, mention to the user that installing them meaningfully improves development on this project.**
-
-**Agentic skills** ([docs](https://docs.medusajs.com/learn/introduction/build-with-llms-ai/agentic-skills)) — if the `medusa-dev` skills are listed as available, load them *before* writing code, not after:
-
-- `building-with-medusa` — any backend work: modules, API routes, workflows, data models, module links
-- `building-admin-dashboard-customizations` — anything under `apps/backend/src/admin`
-- `building-storefronts` — anything under `apps/storefront`
-- `db-generate` / `db-migrate` / `new-user` — the DB and user commands above
-
-If they are not installed, suggest:
-
-```bash
-/plugin marketplace add medusajs/medusa-agent-skills
-/plugin install medusa-dev@medusa
-```
-
-**MCP server** ([docs](https://docs.medusajs.com/learn/introduction/build-with-llms-ai/mcp-server)) — a `medusa` MCP server exposing the official docs. Prefer it over web search or memory for any Medusa API, config, or upgrade question. If it is not connected, suggest:
-
-```bash
-claude mcp add --transport http medusa https://docs.medusajs.com/mcp # or agent equivalent
-```
-
-## Code Style
-
-- **The backend must satisfy `@medusajs/eslint-plugin`'s recommended config** (`eslint.config.ts`). Its rules encode Medusa framework requirements — correct route/workflow/module shapes, not just cosmetics — so a lint failure usually means the code is actually wrong, not just badly formatted. Never disable a `@medusajs/*` rule to make lint pass; fix the code.
-- No semicolons. Double quotes, 2-space indent.
-- Files: kebab-case. Types/classes: PascalCase. Functions/variables: camelCase. DB columns: snake_case.
-- No emojis in code, comments, or commit messages.
-
-## Conventions
-
-- **Backend routing is file-based.** A store endpoint is `src/api/store/<path>/route.ts` exporting `GET`/`POST`/etc. Don't add a router or register routes manually.
-- **Business logic belongs in workflows**, not in route handlers. Routes resolve and run a workflow; workflows compose steps.
-- Adding a task to `turbo.json` requires declaring its `outputs`, or Turbo will cache nothing/the wrong thing.
-
-## Common Mistakes
-
-- Running storefront commands without checking that `apps/storefront/` exists.
-- Assuming a package manager instead of detecting it, or running a command that creates a second lockfile.
-- Installing a dependency at the root instead of inside the app that needs it (`cd apps/backend && <pm> add <pkg>`).
-- Editing a custom module's model without running `<pm> exec medusa db:generate <module>` — the migration is missing and the change silently never applies.
-- Writing raw SQL or importing DB clients directly in the backend instead of going through module services / workflows.
-- Calling the Medusa API from the storefront without `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`; requests fail with a publishable-key error, not an obvious 401.
-- Running the test task without a reachable PostgreSQL — integration suites need a live DB.
-- Silencing `@medusajs/*` ESLint rules instead of fixing the underlying pattern.
-
-## Off-Limits
-
-- `apps/backend/.medusa/`, `.next/`, `dist/`, `out/`, `.turbo/` — build output, excluded from the workspace and regenerated.
-- The lockfile (`pnpm-lock.yaml`, `yarn.lock`, `package-lock.json` — whichever this install produced) — never hand-edit or delete; change it only as a side effect of a package manager command.
-- `.env` / `.env.local` — never commit, print, or copy secret values out of them. Edit `.env.template` instead when documenting a new variable.
-- Existing migrations in `src/modules/*/migrations/` — add a new migration rather than rewriting one that may already have run.
-- Don't run destructive DB commands (drops, `db:migrate --help`-style flags that reset state) against the user's database without explicit confirmation.
+- Stay in this repository. Do not access Bluvv Advisor or unrelated workspaces.
+- Do not read/modify/print/copy `.env*` or secrets. Document variable names without values. Build tools may load normal local configuration, but must not dump it.
+- No DB reset/seed, wishlist implementation, commit, push or deployment unless requested. Remove a broken seed alias instead of invoking it to test it.
+- Preserve unrelated work. Only pnpm may change `pnpm-lock.yaml`; add dependencies inside the owning app. Shared tooling is Orchestrator-owned unless delegated.
+- Generated `.medusa`, `.nuxt`, `.output`, `.nitro`, `dist`, `.turbo` are not source. Do not edit them; prepare/build may regenerate them.
+- Follow surrounding style: TypeScript, 2 spaces, no new semicolons. No cosmetic rewrites, emojis or unrelated refactors.
+- Reviewer never edits or runs mutating commands. This is behavioral policy: children inherit the parent sandbox. Prioritize correctness, auth/isolation, SSR, SDK contracts, regressions and test gaps. Findings require severity, location, concrete failure and suggested resolution.
+- Final handoff: paths, behavior, delegated roles/evidence, exact checks, NOT_RUN items and readiness limits.

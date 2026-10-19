@@ -26,6 +26,10 @@ const {
       Błąd: {{ error.message }}
     </p>
 
+    <p v-else-if="status === 'success' && products?.length === 0">
+      Brak dostępnych produktów.
+    </p>
+
     <ul v-else>
       <li
         v-for="product in products"

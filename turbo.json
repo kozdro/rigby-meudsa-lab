@@ -2,15 +2,24 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".medusa/server/**",
+        ".output/**"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "start": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "build"
+      ],
+      "cache": false,
+      "persistent": true
     },
     "lint": {
       "outputs": []
@@ -18,7 +27,7 @@
     "test": {
       "outputs": []
     },
-    "seed": {
+    "typecheck": {
       "outputs": []
     }
   }
