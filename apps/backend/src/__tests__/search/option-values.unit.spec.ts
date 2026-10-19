@@ -1,4 +1,4 @@
-import { toOptionValues } from "../option-values"
+import { toOptionValues } from "../../search/helpers/option-values"
 
 describe("toOptionValues", () => {
   it("returns an empty list for absent or empty options", () => {

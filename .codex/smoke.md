@@ -24,7 +24,7 @@ BUILD:
 Spawn medusa-specialist and nuxt-specialist with their actual configured agent types.
 Their file ownership is disjoint; they may execute concurrently.
 - medusa-specialist may create/update only
-  apps/backend/src/search/helpers/__tests__/option-values.unit.spec.ts.
+  apps/backend/src/__tests__/search/option-values.unit.spec.ts.
   Read the backend skill and relevant references. Add meaningful pure Jest tests
   for the acceptance criteria against the existing helper. Do not rewrite the helper.
   Run pnpm --dir apps/backend run test:unit and report actual counts/exit code.

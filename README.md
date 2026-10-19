@@ -2,7 +2,9 @@
 
 Local pnpm monorepo for a one-hour live task: Medusa 2.21.2 backend and a minimal
 Nuxt 4 / Vue 3 / TypeScript storefront. Codex orchestrates development; Claude Code
-is a fallback. This repository does not include a complete checkout or wishlist.
+is a fallback. Product Wishlist is implemented end to end; checkout remains out
+of scope. See [wishlist implementation and verification](./.codex/wishlist-verification.md)
+for API contracts, safe migration commands, live checks and demonstration steps.
 
 Use pnpm 12.11.2. The validated shell uses Node 24.22.0; pnpm may select another
 installed compatible Node for child processes, so record both when diagnosing

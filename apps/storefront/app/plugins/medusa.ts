@@ -6,6 +6,7 @@ export default defineNuxtPlugin(() => {
   const medusa = new Medusa({
     baseUrl: config.public.medusaBackendUrl,
     publishableKey: config.public.medusaPublishableKey,
+    auth: { type: 'jwt', jwtTokenStorageMethod: 'nostore' },
   })
 
   return {

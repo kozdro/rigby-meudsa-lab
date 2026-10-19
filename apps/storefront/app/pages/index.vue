@@ -16,7 +16,8 @@ const {
 
 <template>
   <main>
-    <h1>Rigby Medusa Store</h1>
+    <h1>Produkty</h1>
+    <p>Zapisz produkty, do których chcesz wrócić.</p>
 
     <p v-if="status === 'pending'">
       Ładowanie produktów...
@@ -30,20 +31,25 @@ const {
       Brak dostępnych produktów.
     </p>
 
-    <ul v-else>
+    <ul v-else class="product-list">
       <li
         v-for="product in products"
         :key="product.id"
       >
-        <img
-          v-if="product.thumbnail"
-          :src="product.thumbnail"
-          :alt="product.title"
-          width="120"
-        />
+        <article>
+          <img
+            v-if="product.thumbnail"
+            :src="product.thumbnail"
+            :alt="product.title"
+            width="120"
+            height="160"
+            loading="lazy"
+          >
 
-        <h2>{{ product.title }}</h2>
-        <p>{{ product.description }}</p>
+          <h2>{{ product.title }}</h2>
+          <p>{{ product.description }}</p>
+          <WishlistButton :product-id="product.id" :title="product.title" />
+        </article>
       </li>
     </ul>
   </main>
