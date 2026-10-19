@@ -75,6 +75,15 @@ that an already-open VS Code session has reloaded its role catalog.
 - Prefer built-in SDK methods; custom Medusa routes use `sdk.client.fetch` with object bodies. Preserve required headers. The skill's blanket fetch ban does not prohibit Nuxt HTTP tooling.
 - Use regional context when displaying prices. Handle loading/errors/empty data. Port 8000 is not required: actual origins must match CORS. Configure Vite through Nuxt only for a demonstrated issue.
 
+## Frontend Code Formatting
+
+- apps/storefront/.prettierrc is the source of truth for frontend formatting.
+- All frontend changes must follow this configuration.
+- Run pnpm format:storefront after editing frontend files.
+- pnpm format:check must pass before completing a task.
+- Do not apply backend formatting conventions to the storefront.
+- Do not manually override Prettier formatting.
+
 ## Documentation
 
 For unfamiliar/version-sensitive APIs use Context7: resolve-library-id, then a focused query-docs. Verify against installed Medusa 2.21.2 types/source. Medusa Docs MCP is optional and may require Cloud authentication; use public official docs/Context7 when unavailable. Do not install plugins or add credentials just to finish a task.

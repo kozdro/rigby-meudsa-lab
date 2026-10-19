@@ -12,11 +12,13 @@
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm --dir apps/storefront run typecheck",
     "test": "pnpm --dir apps/backend run test:unit",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "backend:dev": "pnpm --dir apps/backend run dev",
     "storefront:dev": "pnpm --dir apps/storefront run dev",
     "harness:check": "node scripts/check-harness.mjs",
-    "harness:smoke": "node scripts/smoke-harness.mjs"
+    "harness:smoke": "node scripts/smoke-harness.mjs",
+    "format:storefront": "prettier --write \"apps/storefront/**/*.{vue,ts,js,mjs,cjs,css,scss,json,md}\" --ignore-path apps/storefront/.gitignore",
+    "format:check": "prettier --check \"apps/storefront/**/*.{vue,ts,js,mjs,cjs,css,scss,json,md}\" --ignore-path apps/storefront/.gitignore"
   },
   "devDependencies": {
     "@medusajs/eslint-plugin": "2.21.2",

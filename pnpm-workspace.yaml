@@ -15,6 +15,11 @@ allowBuilds:
 # only as a dev dependency. Bind it to the consumer's peer context instead of
 # accidentally resolving the storefront's hoisted copy (Vite 8 vs backend Vite 7).
 packageExtensions:
+  # Nuxt's published schema imports Vite types but declares Vite only for its
+  # own development. Keep storefront config types in Nuxt's Vite 8 context.
+  "@nuxt/schema@4.6.2":
+    peerDependencies:
+      vite: "^8.3.4"
   "@medusajs/utils@2.21.2":
     peerDependencies:
       "@medusajs/types": "2.21.2"

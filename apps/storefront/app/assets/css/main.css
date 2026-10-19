@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #fafaf9;
+  --color-ink: #292524;
+  --color-line: #e7e5e4;
+  --color-accent: #0f766e;
+  --color-muted: #57534e;
+  --color-surface: #f0efed;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    scroll-padding-top: 7rem;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button,
+  a,
+  input,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: white;
+  }
+
+  a,
+  button {
+    touch-action: manipulation;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}
+
+@layer components {
+  .site-container {
+    width: min(100% - 2.5rem, 1320px);
+    margin-inline: auto;
+  }
+
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+  }
+
+  .page-heading {
+    font-size: clamp(2.75rem, 6.5vw, 6rem);
+    font-weight: 400;
+    line-height: 1.03;
+    letter-spacing: -0.065em;
+  }
+
+  .button-primary,
+  .button-secondary {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+
+  .button-primary {
+    color: white;
+    background: var(--color-ink);
+    border: 1px solid var(--color-ink);
+  }
+
+  .button-primary:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .button-secondary {
+    border: 1px solid var(--color-line);
+    background: var(--color-canvas);
+  }
+
+  .button-secondary:hover {
+    border-color: var(--color-ink);
+  }
+
+  .text-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    text-underline-offset: 0.3em;
+  }
+
+  .text-link:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .form-input {
+    width: 100%;
+    min-height: 52px;
+    border: 1px solid var(--color-line);
+    background: var(--color-canvas);
+    padding: 0.85rem 1rem;
+    border-radius: 0;
+    font-size: 1rem;
+  }
+
+  .form-input:hover {
+    border-color: var(--color-muted);
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 0.875rem;
+  }
+
+  .state-panel {
+    padding: 3rem 1.25rem;
+    border: 1px solid var(--color-line);
+    text-align: center;
+  }
+
+  .state-panel h2 {
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+  }
+
+  .state-panel p {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+
+  .state-panel a,
+  .state-panel button {
+    margin-top: 1.5rem;
+  }
+
+  .feedback {
+    border: 1px solid var(--color-line);
+    border-left: 3px solid var(--color-accent);
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .skip-link {
+    position: absolute;
+    z-index: 100;
+    top: 0.5rem;
+    left: 1rem;
+    background: var(--color-ink);
+    color: white;
+    padding: 1rem;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .site-container {
+    width: min(100% - 5rem, 1320px);
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3rem 1.5rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3rem 1.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
