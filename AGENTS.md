@@ -1,4 +1,4 @@
-# Rigby development harness
+# Rigby development harness v2
 
 ## Stack and ownership
 
@@ -8,19 +8,53 @@
 - Use pnpm **12.11.2** (`packageManager` / `pnpm-lock.yaml`). Verified local Node: **24.22.0**. Respect installed package engines; do not upgrade frameworks during feature work.
 - PostgreSQL runs in an existing, separate Docker container. Do not recreate, reset, migrate or seed it as a routine check.
 
-## SPEC -> EXPLORE -> BUILD -> REVIEW -> VALIDATE
+## SPEC -> EXPLORE -> BUILD -> TEST -> REVIEW -> VALIDATE
 
-1. **SPEC:** Orchestrator states observable acceptance criteria, exclusions and the smallest useful change. Keep the plan in the conversation.
-2. **EXPLORE:** For unfamiliar/cross-app work, delegate a bounded question to the built-in `explorer`. It reads relevant files and returns paths, existing contracts, risks and checks. No edits or nested delegation. Skip for an understood trivial change.
-3. **BUILD:** Delegate backend implementation to `medusa-specialist` and frontend implementation to `nuxt-specialist` when useful. Do small configuration/documentation work directly. Agree on method/path, types, auth, errors and empty states before splitting cross-app work. Parallelize only disjoint files with an agreed contract.
-4. **REVIEW:** Ask `reviewer` in a separate context to inspect requirements and the actual final diff, including untracked files. Supply base revision and changed paths. It investigates independently; an implementer's summary is not proof. Send findings to the responsible implementer; request focused re-review after material fixes.
-5. **VALIDATE:** Orchestrator checks the final tree, runs applicable gates, reconciles review and acceptance criteria and reports evidence. A reviewer verdict is not a test result. Changes after a check invalidate that check for the affected scope.
+The main Codex session is Orchestrator, not a separate custom agent. It selects
+roles automatically from task scope and risk; users do not select roles or approve
+each delegation. Briefly state the chosen scope and why. Use only needed roles.
 
-Only Orchestrator delegates. Specialists/reviewer must not spawn agents. Maximum three concurrently running subagent threads; stop finished threads using available runtime controls (some clients have no close/delete tool). Do not delegate every command or create extra roles. Never run concurrent edits to the same file. Shared manifests, lockfile and harness belong to Orchestrator unless explicitly assigned.
+1. **SPEC:** State observable acceptance criteria, exclusions and the smallest useful change in the conversation. Apply `.agents/skills/brainstorming-lite/SKILL.md` when material ambiguity exists. Resolve technical uncertainty from repository context, Explorer or documentation first. Ask one concrete question only for a missing product/business decision; block dependent implementation until answered. Do not invent business rules.
+2. **EXPLORE:** For unfamiliar/cross-app work, delegate a bounded read-only question to the built-in `explorer`: paths, contracts, risks and checks. Skip for understood trivial work. No replacement Explorer role or nested delegation.
+3. **BUILD:** Delegate backend to `medusa-specialist`, frontend to `nuxt-specialist` when useful. Small harness/config/documentation changes belong to Orchestrator. Agree on method/path, types, auth, validation, errors and empty states before splitting cross-app work. Assign disjoint file ownership and order dependent work; contract changes return to Orchestrator before dependent edits.
+4. **TEST:** Delegate `qa-engineer` for new behavior, failure boundaries, cross-app contracts or material regression risk. Supply ORIGINAL requirements and acceptance criteria before implementation summaries; QA designs tests independently, preferably while BUILD proceeds. It edits ONLY explicitly assigned test files, never production code, manifests or harness. TEST execution follows required implementations. For simple copy/config changes use existing focused checks directly; do not create pointless tests or mandatory QA delegation.
+5. **REVIEW:** Select `backend-reviewer` for backend and `frontend-reviewer` for frontend; use both for end-to-end changes. For harness-only changes select a reviewer whose remit includes orchestration checks. Reviewers use separate fresh contexts and inspect original requirements, base revision and actual final diff including untracked files independently, without edits or mutating commands. Send findings to the owning implementer, then request focused re-review after material fixes. QA never replaces independent review.
+6. **VALIDATE:** Orchestrator inspects the final tree, runs applicable gates, reconciles review and acceptance criteria, and reports evidence. Agent DONE, reviewer NO_FINDINGS and valid config are not test results. Changes invalidate prior checks for the affected scope.
 
-Every delegation includes: objective, acceptance criteria, allowed files, shared contract, forbidden actions and required checks. Every implementation return includes: **status** (`DONE`, `BLOCKED`, `NEEDS_DECISION`), **files/symbols**, **behavior/contract**, **skills/references**, **checks** (command, exit code, counts or `NOT_RUN` reason), **risks/questions**. Escalate contract changes, unsupported APIs, ownership conflicts and dependencies before dependent edits. Never silently widen scope or weaken checks.
+### Automatic routing
 
-Keep raw logs in the executing context; return concise findings and evidence references. Report unsupported/failed delegation honestly. Never impersonate a subagent or treat a role prompt as runtime execution.
+| Scope/risk | Select as needed |
+| --- | --- |
+| Understood documentation/configuration | Orchestrator; one independent reviewer for substantive harness changes |
+| Small frontend copy/layout | nuxt-specialist + frontend-reviewer; skip backend and separate QA unless behavior/risk warrants it |
+| Backend business/API behavior | medusa-specialist + qa-engineer + backend-reviewer |
+| End-to-end behavior/contract | Explorer, both specialists, qa-engineer, both reviewers; stage work within concurrency limit |
+| Unknown technical detail | Explorer / installed source / Context7, rather than a user technical quiz |
+| Missing product/business decision | brainstorming-lite + one user question; only independent work may continue |
+
+Only Orchestrator delegates. All children, including Explorer, QA and reviewers,
+must not spawn agents. Maximum THREE concurrent subagents across the task, even
+when the runtime allows more. Close/stop finished children using supported runtime
+controls; if unavailable, report that limitation and await completion before the
+next wave. Do not delegate every command or create extra roles. Never run concurrent
+edits to the same file. Shared manifests, lockfile and harness belong to Orchestrator
+unless explicitly assigned. QA owns assigned tests; implementers must not rewrite
+QA assertions to make failures pass. Resolve ownership transfers explicitly.
+
+Every delegation includes: objective, ORIGINAL acceptance criteria, allowed files,
+shared contract/dependencies, forbidden actions and required checks. State that
+agents share a workspace and must preserve others' edits. Every implementation/QA
+return includes: **status** (`DONE`, `BLOCKED`, `NEEDS_DECISION`), **files/symbols**,
+**behavior/contract**, **skills/references**, **checks** (command, exit code, counts
+or `NOT_RUN` reason), **risks/questions**. Escalate contract changes, unsupported
+APIs, ownership conflicts and dependencies before dependent edits. Never silently
+widen scope or weaken checks.
+
+Keep raw logs in the executing context; return concise findings and evidence
+references. Report unsupported/failed delegation honestly. Never impersonate a
+subagent, substitute a generic agent for an unavailable role, or treat a role
+prompt/config validity as runtime proof. Fresh CLI evidence does not establish
+that an already-open VS Code session has reloaded its role catalog.
 
 ## Medusa rules and skills
 
@@ -59,7 +93,7 @@ pnpm test                      # backend unit tests, no DB
 pnpm build                     # both apps
 pnpm check                     # lint + typecheck + unit tests + build
 pnpm harness:check             # effective role config through local Codex app server
-pnpm harness:smoke             # real bounded multi-agent exercise; .codex/smoke.md
+pnpm harness:smoke             # real autonomous A/B fixture scenarios; .codex/smoke.md
 pnpm --dir apps/backend run test:integration:http
 pnpm --dir apps/backend run test:integration:modules
 ```
@@ -77,5 +111,5 @@ pnpm --dir apps/backend run test:integration:modules
 - Preserve unrelated work. Only pnpm may change `pnpm-lock.yaml`; add dependencies inside the owning app. Shared tooling is Orchestrator-owned unless delegated.
 - Generated `.medusa`, `.nuxt`, `.output`, `.nitro`, `dist`, `.turbo` are not source. Do not edit them; prepare/build may regenerate them.
 - Follow surrounding style: TypeScript, 2 spaces, no new semicolons. No cosmetic rewrites, emojis or unrelated refactors.
-- Reviewer never edits or runs mutating commands. This is behavioral policy: children inherit the parent sandbox. Prioritize correctness, auth/isolation, SSR, SDK contracts, regressions and test gaps. Findings require severity, location, concrete failure and suggested resolution.
+- Reviewers never edit or run mutating commands. This is behavioral policy: children inherit the parent sandbox. Prioritize correctness, auth/isolation, SSR, SDK contracts, regressions and test gaps. Findings require severity, location, concrete failure and suggested resolution.
 - Final handoff: paths, behavior, delegated roles/evidence, exact checks, NOT_RUN items and readiness limits.

@@ -36,25 +36,44 @@ they may create/drop test databases and must only use an explicitly authorized,
 disposable test database. Do not run them against the existing development DB.
 There is intentionally no automatic seed/reset command.
 
-Codex loads [AGENTS.md](./AGENTS.md) and the three existing skills in
-`.agents/skills/`. Project config registers `medusa-specialist`, `nuxt-specialist`
-and `reviewer`; exploration uses Codex's built-in `explorer`. Models are inherited.
-Project configuration must be trusted by the local Codex client.
-Start a fresh Codex session after changing role definitions or project configuration.
+Codex uses [Harness v2](./AGENTS.md):
+SPEC -> EXPLORE -> BUILD -> TEST -> REVIEW -> VALIDATE.
+The main session automatically selects roles by scope and risk; users do not
+choose agents or approve each delegation. Explorer is built-in. Custom roles:
+`medusa-specialist`, `nuxt-specialist`, `qa-engineer`, `backend-reviewer` and
+`frontend-reviewer`. Models are inherited. Maximum three concurrent children,
+without nested delegation. QA owns assigned tests and designs them from original
+requirements; reviewers independently inspect the actual diff without edits.
+
+The three existing Medusa/storefront skills are preserved. The local
+[brainstorming-lite](./.agents/skills/brainstorming-lite/SKILL.md) resolves material
+ambiguity: repository/Explorer/docs first for technical unknowns, one concrete user
+question for an unresolved business decision, and dependent implementation waits.
+Clear tasks need no extra question or design document. The skill is automatically
+discovered and explicitly enabled in project config; skills-lock.json continues
+to describe only the three upstream skills, not this local authored skill.
+
+Project config must be trusted by the local client. Start a fresh VS Code Codex
+session after role/skill changes; an already-open session may retain the old catalog.
 
 ```sh
-pnpm harness:check  # inspect effective config through the installed Codex app server
-pnpm harness:smoke  # real Codex calls and bounded edits; uses normal Codex usage
+pnpm harness:check  # effective role/depth/concurrency config + four discovered skills
+pnpm harness:smoke  # actual fresh CLI sessions, autonomous A/B routing + fixture assertions
+pnpm harness:smoke -- A
+pnpm harness:smoke -- B
 ```
 
-The repeatable [smoke task](./.codex/smoke.md) adds/verifies pure option-helper
-tests and the Nuxt successful-empty catalog state. It uses
-SPEC -> EXPLORE -> BUILD -> REVIEW -> VALIDATE and preserves already-correct
-implementations on subsequent runs. It never resets/seeds the DB or implements
-wishlist. Evidence is written to a temporary directory printed by the command.
-A successful Codex process exit alone does not prove delegation or passing QA.
+See the [smoke protocol](./.codex/smoke.md) for safe test-only tasks and interactive
+scenario C. A/B use ignored fixture files under `.harness-runs/`, real local
+HTTP and installed Vue SSR, with no production app edits or database access. B enables network access for its
+single CLI invocation so the sandbox can bind loopback; global/project defaults stay unchanged.
+Evidence paths are printed by the command. A passing config or process exit is
+insufficient: the runner requires typed child threads and independently executed
+assertions. Trace review covers ownership, scheduling and review conclusions.
+This does not establish live Medusa/Nuxt/browser behavior or current VS Code routing.
 
-Use an ordinary persisted Codex session for this workflow: CLI 0.159.3 failed to
-fork Explorer context in `--ephemeral` mode. Reviewer is forbidden to edit by
-policy; subagents still inherit the parent permission sandbox. See AGENTS.md for
-delegation contracts, skill overrides, escalation and quality gates.
+Use persisted CLI sessions: local CLI 0.159.3 previously failed to fork Explorer in
+`--ephemeral` mode. Read-only reviewer and test-only QA ownership are behavioral
+policies within inherited permissions, not separate security sandboxes.
+See [v2 verification](./.codex/verification-v2.md) for actual results and limits;
+[verification.md](./.codex/verification.md) is the historical v1 report.

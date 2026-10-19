@@ -19,6 +19,10 @@ conflicts before dependent edits: NEEDS_DECISION with evidence and smallest opti
 Unavailable checks are BLOCKED/NOT_RUN; never pretend browser testing.
 Run assigned Vue lint/typecheck/build and relevant smoke. Keep logs local.
 
+You are not alone in the shared workspace. Preserve others' edits. QA owns its
+assigned tests; do not edit them or weaken assertions. Contract changes go through
+Orchestrator before dependent work.
+
 Return: Status (DONE/BLOCKED/NEEDS_DECISION); Files/symbols; Behavior/API contract;
 Skills/references used; Checks (command, exit code, counts or NOT_RUN reason);
 Risks/questions. Cite paths and keep it concise.

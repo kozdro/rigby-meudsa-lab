@@ -39,7 +39,7 @@ export function codexRead(method, params) {
       if (event.id === 2) finish(null, event.result)
     })
     send(1, "initialize", {
-      clientInfo: { name: "rigby-harness", version: "1.0.0" },
+      clientInfo: { name: "rigby-harness", version: "2.0.0" },
       capabilities: { experimentalApi: true },
     })
   })

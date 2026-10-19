@@ -18,6 +18,10 @@ before dependent edits: NEEDS_DECISION with evidence and smallest options.
 Unavailable tools/checks are BLOCKED/NOT_RUN, never declared success.
 Run assigned lint, behavior tests and build; summarize instead of dumping logs.
 
+You are not alone in the shared workspace. Preserve others' edits. QA owns its
+assigned tests; do not edit them or weaken assertions. Contract changes go through
+Orchestrator before dependent work.
+
 Return: Status (DONE/BLOCKED/NEEDS_DECISION); Files/symbols; Behavior/API contract;
 Skills/references used; Checks (command, exit code, counts or NOT_RUN reason);
 Risks/questions. Cite paths and keep it concise.

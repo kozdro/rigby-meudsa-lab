@@ -1,56 +1,48 @@
-Run the real SPEC -> EXPLORE -> BUILD -> REVIEW -> VALIDATE workflow in this repository.
-This is an authorized, bounded and repeatable smoke task: handle empty catalog data.
-Use actual configured agent_type values, not role-play. If a named type or built-in
-explorer is unavailable, stop and report UNSUPPORTED with the actual error.
-Do not fall back to a generic agent pretending to be a specialist. No fixed models.
+# Harness v2 smoke protocol
 
-SPEC:
-- Pure backend option normalization returns [] for absent/empty input, ignores blank
-  titles/values, trims values and deduplicates repeated option values.
-- Nuxt product listing shows a Polish empty-state message when a successful result
-  has no products; pending and error states still take precedence.
-- Preserve SDK/useAsyncData, SSR and the existing product list.
-- No wishlist, backend API change, .env/secret reads, unrelated workspaces, DB
-  reset/seed/migrations, integration tests, commit/push, package installs or edits
-  to shared manifests/harness. Build tools may load normal env but never dump it.
+`pnpm harness:smoke` runs A then B in fresh persisted local Codex sessions.
+`pnpm harness:smoke -- A` or `-- B` selects one scenario. These calls consume
+normal Codex usage. Project AGENTS.md supplies automatic routing; scenario prompts
+contain requirements, file boundaries and dependencies, never lists of roles.
+The verifier has separate role expectations and reads actual spawn records,
+independent child threads and loaded agentRole values. No generic-role fallback.
 
-EXPLORE:
-Spawn the BUILT-IN explorer for a read-only map of the two affected paths and
-existing contracts/checks. Ask it to identify itself and its separate thread ID.
-Wait for its result and stop it with available controls before BUILD. Report an
-absent close/delete tool rather than claiming deletion.
+Each run creates ignored `.harness-runs/<id>/` inside this repository:
+fixtures, raw events, child rollout copies, fixed check logs and summary.json.
+Only this owned directory may be edited by the scenario session. Keep the directory
+for review; remove a specific completed run manually when its evidence is no longer
+needed. It is never installed in the apps, routes or production builds.
 
-BUILD:
-Spawn medusa-specialist and nuxt-specialist with their actual configured agent types.
-Their file ownership is disjoint; they may execute concurrently.
-- medusa-specialist may create/update only
-  apps/backend/src/__tests__/search/option-values.unit.spec.ts.
-  Read the backend skill and relevant references. Add meaningful pure Jest tests
-  for the acceptance criteria against the existing helper. Do not rewrite the helper.
-  Run pnpm --dir apps/backend run test:unit and report actual counts/exit code.
-- nuxt-specialist may create/update only apps/storefront/app/pages/index.vue.
-  Read storefront skills/relevant references and apply Nuxt overrides.
-  Implement only the successful-empty state. If it already exists, inspect it and
-  leave it unchanged. Run storefront lint/typecheck; report exact commands/results.
-Give each agent all criteria, allowed files and exclusions. No child may delegate.
-If either needs other files, return NEEDS_DECISION to Orchestrator, do not widen scope.
-Both must return skills/references used, paths and exact check evidence. Wait and
-stop both using available controls. An agent saying DONE is not proof: inspect changes.
+For B only, the CLI invocation sets `sandbox_workspace_write.network_access=true`
+to permit the required loopback HTTP server inside workspace-write. This also allows
+outbound network for that invocation; it is not a loopback-only security policy.
+No project/global permission default changes. Tests bind only 127.0.0.1 on port 0.
 
-REVIEW:
-Spawn reviewer in a fresh context after BUILD. Supply the original SPEC, base HEAD,
-the TWO allowed task paths and actual diff/untracked paths. It must independently
-read the changed files and actual diff, not just implementation summaries. No edits,
-test/build commands, DB calls or nested delegation. Ask for concrete findings with
-locations, evidence inspected, skill references and QA limitations.
-If it requests fixes, delegate them back to the responsible specialist and perform
-focused re-review. Stop/report if resolution needs out-of-scope edits.
+A: a small Vue SSR notice with fixed Polish copy. Only frontend implementation
+and review are necessary; Explorer is optional if context is unfamiliar. No backend
+or independent QA role is needed. A fixed runner-owned assertion checks real output.
 
-VALIDATE:
-Inspect final diff. Run pnpm test, pnpm --dir apps/storefront run lint and
-pnpm --dir apps/storefront run typecheck. Builds and full harness review belong to
-the parent session in this initial run; report those as NOT_RUN here.
-Do not claim a browser or empty-data rendering test ran unless actually performed.
-Return each real child thread ID/type, delegation outcomes, skill references,
-changed paths, commands/exit codes/counts, review findings and remaining limits.
-A repeat run should preserve already-correct behavior and tests. Report no-op honestly.
+B: test-only HTTP server (`GET /notice`) -> async Vue SSR notice. The original
+requirements define success, blank fallback, JSON shape, unknown-route failure,
+HTTP error propagation and escaped text. Independent test ownership is available
+before implementation. Backend/frontend contracts must agree before parallel work;
+QA test execution follows both implementations; independent reviews follow TEST.
+The verifier checks actual typed roles, child completion, concurrent turn count,
+reviewer patch/fileChange attempts and absence of nested delegation. Command-side
+mutations, ownership and sequencing also require independent trace review. Runner-owned assertions plus authored QA
+tests execute independently of agent prose. This is real loopback HTTP + Vue SSR,
+not a live Medusa/Nuxt/browser integration test. It requires no DB or credentials.
+
+C is intentionally interactive in the current chat, not an unattended CLI test.
+Use brainstorming-lite for the ambiguous request: "Pokaż klientowi informację o
+dostępności produktu". Consult available context, ask ONE concrete product question,
+explain options/tradeoffs if useful and hold dependent implementation until answered.
+Do not generate source files for C, even after answering: this is a conversation-only
+exercise. Record the actual question, answer/pending status and client limitations
+in verification-v2.md. Automated A/B success never implies C passed.
+
+VS Code: check actual tool-role availability in the current session. An existing
+session can retain old roles/skills. Start a fresh VS Code Codex session after config
+changes and execute a requirement-only A/B prompt to establish IDE-specific routing.
+Fresh CLI/app-server results prove that local runtime only. Report an IDE reload or
+unavailable role as NOT_VERIFIED, never as simulated success.
