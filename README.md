@@ -16,8 +16,8 @@ pnpm dev
 # or pnpm backend:dev / pnpm storefront:dev
 ```
 
-Backend normally uses http://localhost:9000 (Admin: /app); Nuxt normally uses
-http://localhost:3000. Actual ports may differ. Match browser origins to backend
+Backend normally uses <http://localhost:9000> (Admin: /app); Nuxt normally uses
+<http://localhost:3000>. Actual ports may differ. Match browser origins to backend
 CORS. Configure public SDK options using NUXT_PUBLIC_MEDUSA_BACKEND_URL and
 NUXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY through Nuxt runtimeConfig. Never expose admin
 credentials. Do not copy credentials into instructions, logs or source.

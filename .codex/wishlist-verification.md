@@ -1,6 +1,6 @@
 # Product Wishlist — 2026-10-19
 
-Base: `e803fb42ac541b1c7ff3869735a76c903447495e`. Changes are uncommitted and unpushed.
+Base: `e803fb42ac541b1c7ff3869735a76c903447495e`. Changes are committed and pushed.
 
 ## Delegation and scope
 
