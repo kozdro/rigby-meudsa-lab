@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  name: "heart" | "user" | "arrow" | "menu" | "close" | "chevron" | "check"
+  name: "heart" | "user" | "arrow" | "menu" | "close" | "chevron" | "check";
 }>();
 </script>
 

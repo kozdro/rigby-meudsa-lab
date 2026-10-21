@@ -44,7 +44,7 @@ const { error: regionError, refresh: refreshRegions } = await useAsyncData("stor
 
 useHead({
   htmlAttrs: { lang: "pl" },
-  titleTemplate: "%s | Rigby"
+  titleTemplate: "%s | Rigby",
 });
 </script>
 

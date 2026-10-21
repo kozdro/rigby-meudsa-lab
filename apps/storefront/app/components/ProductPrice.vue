@@ -2,7 +2,7 @@
 import type { DisplayPrice } from "~/utils/pricing";
 
 defineProps<{
-  price: (DisplayPrice & { isRange?: boolean }) | null
+  price: (DisplayPrice & { isRange?: boolean }) | null;
 }>();
 </script>
 
@@ -18,7 +18,7 @@ defineProps<{
       v-if="price.isRange"
       class="text-muted"
     >
-      od 
+      od
     </span>
     {{ price.formatted }}
   </p>

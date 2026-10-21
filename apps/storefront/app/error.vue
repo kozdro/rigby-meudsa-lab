@@ -2,12 +2,12 @@
 import type { NuxtError } from "#app";
 
 defineProps<{
-  error: NuxtError
+  error: NuxtError;
 }>();
 
 useHead({
   htmlAttrs: { lang: "pl" },
-  title: "Nie znaleziono strony | Rigby"
+  title: "Nie znaleziono strony | Rigby",
 });
 </script>
 
@@ -28,9 +28,7 @@ useHead({
       id="main-content"
       class="site-container flex-1 py-20 md:py-32"
     >
-      <p class="eyebrow mb-6 text-accent">
-        Rigby / {{ error.status }}
-      </p>
+      <p class="eyebrow mb-6 text-accent">Rigby / {{ error.status }}</p>
       <h1 class="page-heading max-w-3xl">
         {{ error.status === 404 ? "Tego produktu tutaj nie ma." : "Coś poszło nie tak." }}
       </h1>

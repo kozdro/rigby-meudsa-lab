@@ -23,14 +23,14 @@ useSeoMeta({
   >
     <section class="border-line md:border-r md:pr-16">
       <p class="eyebrow mb-5 text-accent">Rigby / Twoje konto</p>
-      <h1 class="page-heading">Dobrze<br>Cię widzieć.</h1>
+      <h1 class="page-heading">Dobrze<br />Cię widzieć.</h1>
       <p class="mt-7 max-w-80 text-sm leading-7 text-muted">
-        Twoje ulubione w jednym miejscu.<br>Wróć do produktów, które przyciągnęły Twoją uwagę.
+        Twoje ulubione w jednym miejscu.<br />Wróć do produktów, które przyciągnęły Twoją uwagę.
       </p>
       <NuxtLink
         to="/"
         class="text-link mt-7"
-       >
+      >
         <StoreIcon
           name="arrow"
           class="rotate-180"
@@ -49,7 +49,9 @@ useSeoMeta({
         Zaloguj się
       </h2>
       <template v-if="state.customer"
-        ><p class="mt-5 text-sm leading-7 text-muted wrap-break-word">Jesteś zalogowany jako {{ state.customer.email }}.</p>
+        ><p class="mt-5 text-sm leading-7 text-muted wrap-break-word">
+          Jesteś zalogowany jako {{ state.customer.email }}.
+        </p>
         <NuxtLink
           to="/wishlist"
           class="button-primary mt-6"
@@ -82,7 +84,7 @@ useSeoMeta({
           required
           class="form-input"
           :disabled="state.authPending"
-        >
+        />
         <label
           for="password"
           class="mt-6 mb-2 block text-sm font-medium"
@@ -99,7 +101,7 @@ useSeoMeta({
           required
           class="form-input"
           :disabled="state.authPending"
-        >
+        />
         <button
           type="submit"
           data-testid="login-submit"

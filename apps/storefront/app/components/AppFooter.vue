@@ -8,11 +8,8 @@
           class="inline-flex min-h-11 items-center text-3xl font-semibold tracking-[-.08em]"
         >
           rigby<span class="text-accent">.</span>
-        </NuxtLink
-        >
-        <p class="mt-1 text-xs text-muted">
-          Przestrzeń na Twój styl.
-        </p>
+        </NuxtLink>
+        <p class="mt-1 text-xs text-muted">Przestrzeń na Twój styl.</p>
       </div>
       <nav
         aria-label="Nawigacja w stopce"
@@ -23,26 +20,21 @@
           class="text-link"
         >
           Kolekcja
-        </NuxtLink
-        >
+        </NuxtLink>
         <NuxtLink
           to="/wishlist"
           class="text-link"
         >
           Ulubione
-        </NuxtLink
-        >
+        </NuxtLink>
         <NuxtLink
           to="/login"
           class="text-link"
         >
           Twoje konto
-        </NuxtLink
-        >
+        </NuxtLink>
       </nav>
-      <p class="eyebrow text-muted">
-        Rigby / Essentials
-      </p>
+      <p class="eyebrow text-muted">Rigby / Essentials</p>
     </div>
   </footer>
 </template>

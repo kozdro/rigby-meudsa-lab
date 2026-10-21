@@ -141,7 +141,6 @@ useHead(() => ({
         />
         Wróć do kolekcji
       </NuxtLink>
-      <RegionSelector />
     </div>
     <div
       v-if="status === 'pending'"
@@ -230,8 +229,7 @@ useHead(() => ({
             class="mb-3 block text-sm font-medium"
           >
             Wariant <span class="font-normal text-muted">/ {{ product.variants.length }}</span>
-          </label
-          >
+          </label>
           <select
             id="product-variant"
             v-model="selectedVariantId"

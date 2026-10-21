@@ -43,12 +43,12 @@ useSeoMeta({
           id="catalog-heading"
           class="page-heading"
         >
-          Codzienność.<br>W dobrym stylu.
+          Codzienność.<br />W dobrym stylu.
         </h1>
       </div>
       <div class="max-w-72 pb-1">
         <p class="text-sm leading-7 text-muted">
-          Odkryj kolekcję. Przyjrzyj się detalom.<br>Zapisz to, do czego chcesz wrócić.
+          Odkryj kolekcję. Przyjrzyj się detalom.<br />Zapisz to, do czego chcesz wrócić.
         </p>
         <a
           href="#products"
@@ -76,10 +76,8 @@ useSeoMeta({
             class="text-xs text-muted"
           >
             ({{ data?.count || 0 }})
-          </span
-          >
+          </span>
         </div>
-        <RegionSelector />
       </div>
       <div
         v-if="status === 'pending'"

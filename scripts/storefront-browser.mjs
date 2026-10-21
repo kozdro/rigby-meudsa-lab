@@ -106,7 +106,10 @@ export async function runStorefrontBrowserTests({ origin, registerCustomers = fa
     })
     check(regions.length > 0, 'Live Medusa provides regional pricing context')
     const regionId = await evaluate('document.querySelector("[data-region-id]")?.dataset.regionId || null')
-    const region = regions.find(item => item.id === regionId) || regions[0]
+    const region = regions[0]
+    check(regionId === region.id, 'Catalog uses the first Medusa region as the single market')
+    check(await evaluate('!document.querySelector("[data-testid=region-selector]")'), 'Catalog has no region selector')
+    check(!(await command('Network.getCookies', { urls: [origin] })).cookies.some(cookie => cookie.name === 'rigby-region-id'), 'Catalog does not create a region preference cookie')
     const { products } = await sdk.store.product.list({
       region_id: region.id,
       fields: '*variants.calculated_price,*variants.options,*options',
@@ -143,56 +146,51 @@ export async function runStorefrontBrowserTests({ origin, registerCustomers = fa
       const expected = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: lowest.currency_code }).format(lowest.calculated_amount)
       check(normalized(chosen.text).includes(normalized(expected)), 'Catalog price equals regional calculated_amount without division by 100')
     } else skipped.push('Selected real product has no valid regional price; no live numeric-price assertion possible')
-    const ssr = await (await fetch(origin)).text()
+    const catalogResponse = await fetch(origin)
+    const ssr = await catalogResponse.text()
     check(ssr.includes('data-testid="product-card"') && ssr.includes(product.id), 'Catalog products are rendered by SSR')
+    check(!ssr.includes('data-testid="region-selector"'), 'Catalog SSR has no region selector')
+    check(!catalogResponse.headers.getSetCookie().some(cookie => cookie.startsWith('rigby-region-id=')), 'Catalog SSR does not create a region preference cookie')
     check((await evaluate('window.__qaHydrationWarnings')).length === 0, 'Catalog hydrates without mismatch warnings')
     await noOverflow('Desktop catalog has no horizontal overflow')
     await focusable()
     await evaluate('document.activeElement?.blur()')
     await screenshot('catalog-1440')
 
-    if (regions.length > 1) {
-      stage = 'region switching and SSR persistence'
-      const select = '[data-testid="region-selector"]'
-      const alternate = regions.find(item => item.id !== region.id)
-      await evaluate(`(() => {
-        const select = document.querySelector(${JSON.stringify(select)})
-        select.value = ${JSON.stringify(alternate.id)}
-        select.dispatchEvent(new Event('change', { bubbles: true }))
-      })()`)
-      await waitFor(`document.querySelector('[data-region-id]')?.dataset.regionId === ${JSON.stringify(alternate.id)} && Boolean(document.querySelector('[data-testid=product-card]'))`)
-      await navigate(origin)
-      await hydrated()
-      await waitFor(`document.querySelector(${JSON.stringify(select)})?.value === ${JSON.stringify(alternate.id)}`)
-      passed.push('Region selection persists through actual browser refresh')
-      const alternateCookie = (await command('Network.getCookies', { urls: [origin] })).cookies.find(value => value.name === 'rigby-region-id')
-      check(alternateCookie?.value === alternate.id, 'Selected region is persisted in the region cookie')
-      const alternateSSR = await (await fetch(origin, { headers: { cookie: `${alternateCookie.name}=${alternateCookie.value}` } })).text()
-      check(alternateSSR.includes(`data-region-id="${alternate.id}"`), 'SSR respects the selected region cookie')
-      const alternateProducts = await sdk.store.product.list({ region_id: alternate.id, fields: '*variants.calculated_price', limit: 100 })
-      const priceData = await evaluate(`Array.from(document.querySelectorAll('[data-testid=product-card]')).map(card => ({
-        id: card.dataset.productId,
-        amount: card.querySelector('[data-testid=product-price]')?.dataset.amount,
-        currency: card.querySelector('[data-testid=product-price]')?.dataset.currency,
-      }))`)
-      check(priceData.every(card => {
-        const actual = alternateProducts.products.find(item => item.id === card.id)
-        const valid = (actual?.variants || []).flatMap(variant => {
-          const price = variant.calculated_price
-          return price && typeof price.calculated_amount === 'number' && Number.isFinite(price.calculated_amount)
-            && price.calculated_amount >= 0 && price.currency_code?.toLowerCase() === alternate.currency_code.toLowerCase() ? [price.calculated_amount] : []
-        })
-        return valid.length ? Number(card.amount) === Math.min(...valid) && card.currency === alternate.currency_code.toUpperCase() : card.amount === undefined
-      }), 'Switched region prices match real regional variant prices, hiding unavailable prices')
-      await evaluate(`(() => {
-        const select = document.querySelector(${JSON.stringify(select)})
-        select.value = ${JSON.stringify(region.id)}
-        select.dispatchEvent(new Event('change', { bubbles: true }))
-      })()`)
-      await navigate(origin)
-      await hydrated()
-      await waitFor(`document.querySelector(${JSON.stringify(select)})?.value === ${JSON.stringify(region.id)} && Boolean(document.querySelector('[data-testid=product-card]'))`)
-    } else passed.push('Real Medusa provides a single region; selected regional prices verified')
+    stage = 'single market ignores legacy preference'
+    const staleRegionId = regions.find(item => item.id !== region.id)?.id || 'reg_qa_stale_market'
+    const staleCookie = `rigby-region-id=${staleRegionId}`
+    const setCookie = await command('Network.setCookie', { name: 'rigby-region-id', value: staleRegionId, url: origin, path: '/' })
+    assert.ok(setCookie.success, 'Legacy region cookie is installed for the regression test')
+    await navigate(origin)
+    await hydrated()
+    await waitFor('Boolean(document.querySelector("[data-testid=product-card]"))')
+    check(await evaluate(`document.querySelector('[data-region-id]')?.dataset.regionId === ${JSON.stringify(region.id)}`), 'Catalog ignores a stale region cookie after browser refresh')
+    check(await evaluate('!document.querySelector("[data-testid=region-selector]")'), 'Legacy region preference does not expose a catalog selector')
+    const priceData = await evaluate(`Array.from(document.querySelectorAll('[data-testid=product-card]')).map(card => ({
+      id: card.dataset.productId,
+      amount: card.querySelector('[data-testid=product-price]')?.dataset.amount,
+      currency: card.querySelector('[data-testid=product-price]')?.dataset.currency,
+    }))`)
+    check(priceData.length > 0 && priceData.every(card => {
+      const actual = products.find(item => item.id === card.id)
+      if (!actual) return false
+      const valid = (actual.variants || []).flatMap(variant => {
+        const price = variant.calculated_price
+        return price && typeof price.calculated_amount === 'number' && Number.isFinite(price.calculated_amount)
+          && price.calculated_amount >= 0 && price.currency_code?.toLowerCase() === region.currency_code.toLowerCase() ? [price.calculated_amount] : []
+      })
+      return valid.length ? Number(card.amount) === Math.min(...valid) && card.currency === region.currency_code.toUpperCase() : card.amount === undefined
+    }), 'Legacy cookie leaves catalog prices in the default market currency with real Medusa amounts')
+    const ssrPrices = html => Array.from(html.matchAll(/<p\b[^>]*\bdata-testid="product-price"[^>]*>/g), ([tag]) => ({
+      amount: tag.match(/\bdata-amount="([^"]*)"/)?.[1],
+      currency: tag.match(/\bdata-currency="([^"]*)"/)?.[1],
+    }))
+    const staleCatalogSSR = await (await fetch(origin, { headers: { cookie: staleCookie } })).text()
+    check(staleCatalogSSR.includes(`data-region-id="${region.id}"`) && staleCatalogSSR.includes(product.id), 'Catalog SSR ignores the stale region cookie')
+    check(JSON.stringify(ssrPrices(staleCatalogSSR)) === JSON.stringify(ssrPrices(ssr)), 'Legacy cookie leaves SSR catalog prices unchanged')
+    check(JSON.stringify(ssrPrices(staleCatalogSSR)) === JSON.stringify(priceData.filter(card => card.amount !== undefined).map(({ amount, currency }) => ({ amount, currency }))), 'SSR catalog prices match the verified default market amounts and currency')
+    check((await evaluate('window.__qaHydrationWarnings')).length === 0, 'Catalog with stale region cookie hydrates without mismatch warnings')
 
     for (const width of [768, 375]) {
       stage = `${width}px responsive catalog`
@@ -213,10 +211,26 @@ export async function runStorefrontBrowserTests({ origin, registerCustomers = fa
     await navigate(`${origin}${chosen.href}`)
     await hydrated()
     await waitFor('Boolean(document.querySelector("[data-testid=product-detail]"))')
+    check(await evaluate('!document.querySelector("[data-testid=region-selector]")'), 'PDP has no region selector')
+    check(await evaluate(`document.querySelector('[data-region-id]')?.dataset.regionId === ${JSON.stringify(region.id)}`), 'PDP ignores the stale region cookie in the browser')
     check(await evaluate(`document.querySelector('[data-testid=product-detail]').dataset.productId === ${JSON.stringify(product.id)}`), 'PDP keeps actual product ID')
     check(await evaluate(`document.querySelector('h1').textContent.trim() === ${JSON.stringify(product.title)}`), 'PDP renders real product title')
-    const detailSSR = await (await fetch(`${origin}${chosen.href}`)).text()
+    const detailResponse = await fetch(`${origin}${chosen.href}`)
+    const detailSSR = await detailResponse.text()
     check(detailSSR.includes('data-testid="product-detail"') && detailSSR.includes(product.id), 'PDP product data is present in SSR HTML')
+    check(!detailSSR.includes('data-testid="region-selector"'), 'PDP SSR has no region selector')
+    check(!detailResponse.headers.getSetCookie().some(cookie => cookie.startsWith('rigby-region-id=')), 'PDP SSR does not create a region preference cookie')
+    const staleDetailSSR = await (await fetch(`${origin}${chosen.href}`, { headers: { cookie: staleCookie } })).text()
+    check(staleDetailSSR.includes(`data-region-id="${region.id}"`) && staleDetailSSR.includes(product.id), 'PDP SSR ignores the stale region cookie')
+    check(JSON.stringify(ssrPrices(staleDetailSSR)) === JSON.stringify(ssrPrices(detailSSR)), 'Legacy cookie leaves SSR PDP prices unchanged')
+    const staleDetailPrices = await evaluate(`Array.from(document.querySelectorAll('[data-testid=product-price]')).map(price => ({ amount: price.dataset.amount, currency: price.dataset.currency }))`)
+    check(JSON.stringify(staleDetailPrices) === JSON.stringify(ssrPrices(detailSSR)), 'PDP browser prices with legacy cookie match the default market SSR prices')
+    check((await evaluate('window.__qaHydrationWarnings')).length === 0, 'PDP with stale region cookie hydrates without mismatch warnings')
+    await command('Network.deleteCookies', { name: 'rigby-region-id', url: origin })
+    await navigate(`${origin}${chosen.href}`)
+    await hydrated()
+    await waitFor('Boolean(document.querySelector("[data-testid=product-detail]"))')
+    check(!(await command('Network.getCookies', { urls: [origin] })).cookies.some(cookie => cookie.name === 'rigby-region-id'), 'PDP does not create a region preference cookie')
     if (product.variants.length > 1) {
       const variant = '[data-testid="product-variant"]'
       const available = await evaluate(`Array.from(document.querySelector(${JSON.stringify(variant)}).options).map(el => ({ value: el.value, disabled: el.disabled }))`)

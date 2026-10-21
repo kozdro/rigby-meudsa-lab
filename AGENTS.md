@@ -88,6 +88,16 @@ that an already-open VS Code session has reloaded its role catalog.
 
 For unfamiliar/version-sensitive APIs use Context7: resolve-library-id, then a focused query-docs. Verify against installed Medusa 2.21.2 types/source. Medusa Docs MCP is optional and may require Cloud authentication; use public official docs/Context7 when unavailable. Do not install plugins or add credentials just to finish a task.
 
+Before implementing Medusa features:
+
+1. Consult the official Medusa documentation index:
+   <https://docs.medusajs.com/llms.txt>
+2. Look for an existing official tutorial or reference implementation.
+3. Prefer the relevant Markdown documentation page.
+4. Verify APIs against installed Medusa 2.21.2 types.
+5. Adapt Next.js examples to our Nuxt 4 storefront.
+6. Prefer the smallest documented solution over custom architecture.
+
 ## Commands and quality gates
 
 Run from root with pnpm; never introduce another lockfile:

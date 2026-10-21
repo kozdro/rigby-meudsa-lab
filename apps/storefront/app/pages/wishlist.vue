@@ -13,7 +13,7 @@ useSeoMeta({ title: "Ulubione", description: "Twoja osobista lista ulubionych pr
       <div>
         <p class="eyebrow mb-5 text-accent">Rigby / Twoja selekcja</p>
         <h1 class="page-heading">
-          Ulubione<br>produkty
+          Ulubione<br />produkty
           <span class="text-accent">.</span>
         </h1>
         <p class="mt-6 text-sm leading-7 text-muted">Rzeczy, które chcesz mieć na oku.</p>
@@ -41,7 +41,7 @@ useSeoMeta({ title: "Ulubione", description: "Twoja osobista lista ulubionych pr
       <NuxtLink
         to="/login"
         class="button-primary"
-       >
+      >
         Zaloguj się
         <StoreIcon name="arrow" />
       </NuxtLink>

@@ -3,9 +3,9 @@ const props = withDefaults(
   defineProps<{
     src?: string | null;
     alt: string;
-    eager?: boolean
+    eager?: boolean;
   }>(),
-  { src: null, eager: false }
+  { src: null, eager: false },
 );
 
 const failed = ref(false);
@@ -30,7 +30,7 @@ watch(
       :fetchpriority="eager ? 'high' : 'auto'"
       class="h-full w-full object-contain mix-blend-multiply"
       @error="failed = true"
-    >
+    />
     <span
       v-else
       class="px-3 text-center text-xs text-muted"

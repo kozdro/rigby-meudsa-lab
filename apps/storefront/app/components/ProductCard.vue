@@ -5,9 +5,9 @@ import { getProductPrice } from "~/utils/pricing";
 const props = withDefaults(
   defineProps<{
     product: HttpTypes.StoreProduct;
-    eager?: boolean
+    eager?: boolean;
   }>(),
-  { eager: false }
+  { eager: false },
 );
 
 const { region } = useStoreRegion();
