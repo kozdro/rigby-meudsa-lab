@@ -14,8 +14,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      medusaBackendUrl: "http://localhost:9000",
-      medusaPublishableKey: "",
+      medusaBackendUrl: process.env.MEDUSA_BACKEND_URL,
+      medusaPublishableKey: process.env.MEDUSA_PUBLISHABLE_KEY,
     },
   },
 });
