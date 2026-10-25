@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { state, items, logout } = useWishlist();
 const route = useRoute();
+const { count, state: shopping } = useCart();
 
 const menuOpen = ref(false);
 const menuToggle = ref<HTMLButtonElement | null>(null);
@@ -50,6 +51,25 @@ watch(
       </nav>
       <div class="flex items-center gap-1 md:gap-5">
         <NuxtLink
+          to="/cart"
+          class="text-link min-w-11 justify-center"
+          aria-label="Koszyk"
+        >
+          <StoreIcon name="bag" /><span class="hidden lg:inline">Koszyk</span>
+          <span
+            data-testid="cart-count"
+            aria-live="polite"
+            aria-atomic="true"
+            >{{ count }}</span
+          >
+        </NuxtLink>
+        <NuxtLink
+          v-if="state.customer"
+          to="/account"
+          class="text-link hidden min-w-11 justify-center md:inline-flex"
+          >Konto</NuxtLink
+        >
+        <NuxtLink
           to="/wishlist"
           :aria-label="`Ulubione produkty: ${items.length}`"
           class="flex min-h-11 min-w-11 items-center justify-center gap-2 hover:text-accent"
@@ -68,7 +88,7 @@ watch(
           type="button"
           data-testid="logout"
           class="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 text-sm hover:text-accent"
-          :disabled="state.authPending || !!state.pendingProduct"
+          :disabled="state.authPending || !!state.pendingProduct || shopping.pending"
           @click="logout"
         >
           <StoreIcon name="user" /><span class="sr-only md:not-sr-only">{{
@@ -113,6 +133,12 @@ watch(
         class="flex min-h-14 items-center justify-between border-b border-line text-sm"
         :aria-current="route.path === '/wishlist' ? 'page' : undefined"
         >Twoje ulubione<StoreIcon name="heart"
+      /></NuxtLink>
+      <NuxtLink
+        v-if="state.customer"
+        to="/account"
+        class="flex min-h-14 items-center justify-between border-b border-line text-sm"
+        >Twoje konto i punkty<StoreIcon name="user"
       /></NuxtLink>
       <div
         v-if="state.customer"

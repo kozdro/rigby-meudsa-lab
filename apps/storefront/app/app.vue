@@ -4,6 +4,7 @@ import type { CustomerSession, WishlistResponse } from "../shared/types/wishlist
 const { $medusa } = useNuxtApp();
 const { state, reload } = useWishlist();
 const requestFetch = useRequestFetch();
+const { state: shopping, reset: resetCart } = useCart();
 
 const { data: bootstrap, error: sessionError } = await useAsyncData("wishlist-bootstrap", async () => {
   const session = await requestFetch<CustomerSession>("/api/customer/session");
@@ -35,6 +36,18 @@ const { data: bootstrap, error: sessionError } = await useAsyncData("wishlist-bo
 if (bootstrap.value) Object.assign(state.value, bootstrap.value);
 
 if (sessionError.value) state.value.error = "Nie udało się sprawdzić sesji. Spróbuj odświeżyć stronę.";
+
+const { data: initialCart } = await useAsyncData("current-cart", async () => {
+  if (!state.value.customer) return null;
+  return requestFetch<import("../shared/types/cart").CartResponse>("/api/cart");
+});
+
+shopping.value.response = initialCart.value || null;
+
+watch(
+  () => state.value.customer?.id,
+  () => resetCart(),
+);
 
 const { error: regionError, refresh: refreshRegions } = await useAsyncData("store-regions", async () => {
   const response = await $medusa.store.region.list({ limit: 100 });
