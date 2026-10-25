@@ -7,6 +7,7 @@ import {
   medusaStatus,
   setCustomerCookie,
 } from "../../utils/customer";
+import { clearCartCookie } from "../../utils/cart";
 
 export default defineEventHandler(async (event) => {
   assertSameOrigin(event);
@@ -26,6 +27,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: "Podaj adres e-mail i hasło." });
   }
   clearCustomerCookie(event);
+  clearCartCookie(event);
   const sdk = await customerSdk(event, false);
   try {
     const result = await sdk.auth.login("customer", "emailpass", {

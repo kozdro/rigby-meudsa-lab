@@ -39,6 +39,8 @@ watch([status, product], () => {
 
 const selectedVariantId = ref("");
 const selectedImage = ref("");
+const quantity = ref(1);
+const { state: shopping, add } = useCart();
 
 watch(
   product,
@@ -256,6 +258,54 @@ useHead(() => ({
           </p>
         </div>
         <div class="mt-7">
+          <form
+            class="mb-6"
+            @submit.prevent="add(selectedVariantId, quantity)"
+          >
+            <label
+              for="add-quantity"
+              class="mb-2 block text-sm"
+              >Ilość</label
+            >
+            <input
+              id="add-quantity"
+              v-model.number="quantity"
+              data-testid="add-quantity"
+              type="number"
+              min="1"
+              max="100"
+              required
+              class="form-input mb-3 max-w-28"
+              :disabled="shopping.pending"
+            />
+            <button
+              type="submit"
+              data-testid="add-to-cart"
+              class="button-primary w-full"
+              :disabled="shopping.pending || !selectedVariantId || !price || availability === 'Niedostępny'"
+            >
+              {{ shopping.pending ? "Dodawanie…" : "Dodaj do koszyka" }}
+            </button>
+            <p
+              v-if="shopping.error"
+              role="alert"
+              class="feedback mt-3"
+            >
+              {{ shopping.error }}
+            </p>
+            <p
+              v-if="shopping.notice"
+              role="status"
+              class="feedback mt-3"
+            >
+              {{ shopping.notice }}
+              <NuxtLink
+                to="/cart"
+                class="text-link"
+                >Przejdź do koszyka</NuxtLink
+              >
+            </p>
+          </form>
           <WishlistButton
             :product-id="product.id"
             :title="product.title"
